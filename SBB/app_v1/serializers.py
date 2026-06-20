@@ -5,3 +5,4 @@ class UserSerializer(serializers.DocumentSerializer):
     class Meta:
         model=User
         fields='__all__'
+        
