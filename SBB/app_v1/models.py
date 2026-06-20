@@ -10,6 +10,7 @@ from uuid import uuid4
 
 
 class User(Document):
+    userid = StringField()
     first_name = StringField()
     last_name = StringField()
     email = EmailField(unique=True)
