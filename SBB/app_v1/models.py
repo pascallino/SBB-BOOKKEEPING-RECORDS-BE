@@ -1,6 +1,8 @@
 from django.db import models
 from django.db import models
-from mongoengine import Document, ListField, StringField, EmailField, DateField, DateTimeField, FloatField
+from mongoengine import (Document, ReferenceField,
+      ListField, StringField, EmailField, DateField,
+      DateTimeField, FloatField)
 from datetime import datetime
 from django.contrib.auth.hashers import check_password, make_password
 from uuid import uuid4
@@ -27,3 +29,28 @@ class User(Document):
     @property
     def is_authenticated(self):
         return True
+
+class Invoice(Document):
+    user_id = ReferenceField(User,  null=True)
+
+    invoice_number = StringField()
+    customer_name = StringField()
+
+    amount = FloatField()
+
+    status = StringField(
+        choices=["paid", "unpaid", "partial"]
+    )
+
+    due_date = DateTimeField()
+    created_at = DateTimeField()
+
+class Income(Document):
+    incomeid = StringField()
+    userid = ReferenceField(User,  null=True)
+    invoiceid = ReferenceField(Invoice, null=True)
+    source = StringField()
+    amount = FloatField()
+    description = StringField()
+    transaction_date = DateTimeField()
+    created_at = DateTimeField()
