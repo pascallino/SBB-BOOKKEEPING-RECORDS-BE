@@ -3,14 +3,15 @@ from rest_framework.permissions import AllowAny
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import User, Income, Invoice
+from .models import User, Income, Invoice, Customer
 from uuid import uuid4
 from rest_framework import status
 from rest_framework_simplejwt.tokens import AccessToken
 from django.http import HttpResponse
-from .serializers import UserSerializer, IncomeSerializer
+from .serializers import UserSerializer, IncomeSerializer, CustomerSerializer
 from datetime  import datetime
 from .authentication import MongoJWTAuthentication
+from rest_framework.permissions import IsAuthenticated
 
 # Create your views here.
 
@@ -124,6 +125,105 @@ class get_all_profile(APIView):
         except User.DoesNotExist:
             return Response({"error":"User not found"}, status=400)
 
+
+class CreateCustomer(APIView):
+    authentication_classes = [MongoJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        try:
+            data = CustomerSerializer(data=request.data)
+            data.is_valid(raise_exception=True)
+            validated_data = data.validated_data
+            customer = Customer(customerid=str(uuid4()),
+            userid=request.user,
+            first_name=validated_data["first_name"],
+            last_name=validated_data["last_name"],
+            business_name=validated_data["business_name"],
+            email=validated_data["email"],
+            phone_number = validated_data["phone_number"],
+            address = validated_data["address"],
+            created_at = datetime.now(),
+            updated_at = datetime.now())
+            customer.save()
+            return Response({"success":"Customer registered successfully"}, status=201)
+        except Exception as e:
+            return Response({"error":str(e)},status=400)
+        
+
+class UpdateCustomer(APIView):
+    authentication_classes = [MongoJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    def put(self, request, customerid):
+        try:
+            customer = Customer.objects.get(customerid=customerid)
+            serializer = CustomerSerializer(
+                data=request.data,
+                partial=True
+            )
+            serializer.is_valid(raise_exception=True)
+            for key, value in serializer.validated_data.items():
+                setattr(customer, key, value)
+            customer.updated_at = datetime.now()
+            customer.save()
+            return Response(
+                {"success": "Customer updated successfully"},
+                status=200
+            )
+        except Customer.DoesNotExist:
+            return Response(
+                {"error": "Customer not found"},
+                status=404
+            )
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=400
+            )
+
+class DeleteCustomer(APIView):
+    authentication_classes = [MongoJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    def delete(self, request, customerid):
+        try:
+            customer = Customer.objects.get(customerid=customerid)
+            customer.delete()
+            return Response(
+                {"success": "Customer deleted successfully"},
+                status=200
+            )
+        except Customer.DoesNotExist:
+            return Response(
+                {"error": "Customer not found"},
+                status=404
+            )
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=400
+            )
+
+class GetCustomer(APIView):
+    authentication_classes = [MongoJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, customerid):
+        try:
+            customer = Customer.objects.get(customerid=customerid)
+            serialized_customer = CustomerSerializer(customer)
+            return Response(serialized_customer.data, status=200)
+        except Customer.DoesNotExist:
+            return Response({"error":"Customer not found"}, status=400)
+
+class ListALlCustomers(APIView):
+    authentication_classes = [MongoJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        try:
+            customers = Customer.objects.all()
+            serialized_customer = CustomerSerializer(customers, many=True)
+            return Response(serialized_customer.data, status=200)
+        except Customer.DoesNotExist:
+            return Response({"error":"Customer not found"}, status=400)
 
 class Post_Income(APIView):
     authentication_classes = [MongoJWTAuthentication]
