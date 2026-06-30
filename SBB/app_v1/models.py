@@ -41,17 +41,18 @@ class Customer(Document):
     updated_at = DateTimeField()
 
 class Invoice(Document):
-    user_id = ReferenceField(User)
-    customer_id = ReferenceField(Customer)
+    userid = ReferenceField(User)
+    customer_id = ReferenceField(Customer, null=True)
     invoice_no = StringField()
     amount = FloatField()
-    due_date = DateTimeField()
+    due_date = DateTimeField(required=False)
     status = StringField(
         choices=["paid", "unpaid", "partial"]
     )
     created_at = DateTimeField()
+    updated_at = DateTimeField()
 
-class Invoice(Document):
+""" class Invoice(Document):
     userid = ReferenceField(User,  null=True)
     invoice_number = StringField()
     customerid = ReferenceField(Customer)
@@ -61,7 +62,7 @@ class Invoice(Document):
     )
 
     due_date = DateTimeField()
-    created_at = DateTimeField()
+    created_at = DateTimeField() """
 
 class Income(Document):
     incomeid = StringField()

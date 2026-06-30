@@ -8,7 +8,9 @@ from uuid import uuid4
 from rest_framework import status
 from rest_framework_simplejwt.tokens import AccessToken
 from django.http import HttpResponse
-from .serializers import UserSerializer, IncomeSerializer, CustomerSerializer
+from .serializers import (UserSerializer, IncomeSerializer, 
+                          CustomerSerializer, CreateInvoiceSerializer,
+                          SInvoiceSerializer)
 from datetime  import datetime
 from .authentication import MongoJWTAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -125,6 +127,159 @@ class get_all_profile(APIView):
         except User.DoesNotExist:
             return Response({"error":"User not found"}, status=400)
 
+class CreateInvoice(APIView):
+    authentication_classes = [MongoJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        try:
+            serializer = CreateInvoiceSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            validated_data = serializer.validated_data
+            customer = None
+            customerid = validated_data.get("customerid")
+            if customerid:
+                customer = Customer.objects.get(customerid=customerid)
+            invoice = Invoice(
+                userid=request.user,
+                customer_id=customer,
+                invoice_no=f"INV-{datetime.now().strftime('%Y%m%d')}-{uuid4().hex[:6].upper()}",
+                amount=validated_data["amount"],
+                due_date=validated_data.get("due_date"),
+                status=validated_data["status"],
+                created_at=datetime.now()
+            )
+            invoice.save()
+            return Response(
+                {"success": "Invoice registered successfully"},
+                status=201
+            )
+        except Customer.DoesNotExist:
+            return Response(
+                {"error": "Customer not found"},
+                status=404
+            )
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=400
+            )
+
+
+class UpdateInvoice(APIView):
+    authentication_classes = [MongoJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request, id):
+        try:
+            serializer = CreateInvoiceSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            validated_data = serializer.validated_data
+
+            # Get invoice belonging to the authenticated user
+            invoice = Invoice.objects.get(id=id, userid=request.user)
+
+            # Update customer if provided
+            customerid = validated_data.get("customerid")
+            if customerid:
+                customer = Customer.objects.get(customerid=customerid)
+                invoice.customer_id = customer
+
+            # Update invoice fields
+            invoice.amount = validated_data["amount"]
+            invoice.due_date = validated_data.get("due_date")
+            invoice.status = validated_data["status"]
+            invoice.updated_at = datetime.now()
+
+            invoice.save()
+
+            return Response(
+                {"success": "Invoice updated successfully"},
+                status=200
+            )
+
+        except Invoice.DoesNotExist:
+            return Response(
+                {"error": "Invoice not found"},
+                status=404
+            )
+
+        except Customer.DoesNotExist:
+            return Response(
+                {"error": "Customer not found"},
+                status=404
+            )
+
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=400
+            )
+
+from datetime import datetime
+from rest_framework.views import APIView
+from rest_framework.response import Response
+
+class SearchInvoice(APIView):
+    authentication_classes = [MongoJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            invoice_no = request.GET.get("invoice_no")
+            start_date = request.GET.get("start_date")
+            end_date = request.GET.get("end_date")
+            invoices = Invoice.objects.filter(userid=request.user)
+            # Filter by invoice number
+            if invoice_no:
+                invoices = invoices.filter(invoice_no__icontains=invoice_no)
+            # Filter by start date
+            if start_date:
+                start_date = datetime.strptime(start_date, "%Y-%m-%d")
+                invoices = invoices.filter(created_at__gte=start_date)
+
+            # Filter by end date
+            if end_date:
+                end_date = datetime.strptime(end_date, "%Y-%m-%d").replace(
+                    hour=23, minute=59, second=59
+                )
+                invoices = invoices.filter(created_at__lte=end_date)
+
+            serializer = SInvoiceSerializer(invoices, many=True)
+
+            return Response(serializer.data, status=200)
+
+        except ValueError:
+            return Response(
+                {"error": "Date format should be YYYY-MM-DD"},
+                status=400
+            )
+
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=400
+            )
+
+class DeleteInvoice(APIView):
+    authentication_classes = [MongoJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    def delete(self, request, invoice_no):
+        try:
+            invoice = Invoice.objects.get(
+                invoice_no=invoice_no,
+                userid=request.user
+            )
+            invoice.delete()
+            return Response(
+                {"success": "Invoice deleted successfully"},
+                status=200
+            )
+        except Invoice.DoesNotExist:
+            return Response(
+                {"error": "Invoice not found"},
+                status=404
+            )
+
 
 class CreateCustomer(APIView):
     authentication_classes = [MongoJWTAuthentication]
@@ -225,6 +380,7 @@ class ListALlCustomers(APIView):
         except Customer.DoesNotExist:
             return Response({"error":"Customer not found"}, status=400)
 
+
 class Post_Income(APIView):
     authentication_classes = [MongoJWTAuthentication]
     permission_classes = [AllowAny]
@@ -261,4 +417,7 @@ class Post_Income(APIView):
             return Response({
                 "error": str(e)
             }, status=400)
+
+
+
             
