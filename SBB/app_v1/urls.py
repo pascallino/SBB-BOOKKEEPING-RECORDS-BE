@@ -3,7 +3,7 @@ from django.urls import path, include
 from .views import (name, register, login 
       ,profile, get_all_profile, Post_Income, CreateCustomer, 
       DeleteCustomer, UpdateCustomer, GetCustomer, ListALlCustomers, 
-      CreateInvoice, UpdateInvoice, DeleteInvoice, SearchInvoice)
+      CreateInvoice, UpdateInvoice, DeleteInvoice, SearchInvoice, CreateIncome)
 
 
 urlpatterns = [
@@ -16,6 +16,8 @@ urlpatterns = [
       path('api/invoice/update/<id>', UpdateInvoice.as_view(), name="this api is used to modify an invoice") ,
       path("api/invoice/delete/<str:invoice_no>", DeleteInvoice.as_view(), name="delete-invoice"),
       path("api/invoices/search", SearchInvoice.as_view(), name="search-invoice"),
+      path('api/income/create', CreateIncome.as_view(), name="this api is used to record a Payment") ,
+
       path('api/customers/create', CreateCustomer.as_view(), name="this api is used to create a customer") ,
       path('api/customers/update/<customerid>', UpdateCustomer.as_view(), name="this api is used to Update a customer") ,
       path('api/customers/delete/<customerid>', DeleteCustomer.as_view(), name="this api is used to Delete a customer") ,

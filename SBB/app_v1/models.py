@@ -64,12 +64,14 @@ class Invoice(Document):
     due_date = DateTimeField()
     created_at = DateTimeField() """
 
+
 class Income(Document):
     incomeid = StringField()
-    userid = ReferenceField(User,  null=True)
+    userid = ReferenceField(User)
     invoiceid = ReferenceField(Invoice, null=True)
     source = StringField()
     amount = FloatField()
     description = StringField()
-    transaction_date = DateTimeField()
-    created_at = DateTimeField()
+    transaction_date = DateTimeField(required=True)
+    created_at = DateTimeField(default=datetime.utcnow)
+    updated_at = DateTimeField(default=datetime.utcnow)

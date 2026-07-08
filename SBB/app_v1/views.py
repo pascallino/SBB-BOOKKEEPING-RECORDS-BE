@@ -10,7 +10,7 @@ from rest_framework_simplejwt.tokens import AccessToken
 from django.http import HttpResponse
 from .serializers import (UserSerializer, IncomeSerializer, 
                           CustomerSerializer, CreateInvoiceSerializer,
-                          SInvoiceSerializer)
+                          SInvoiceSerializer, CreateIncomeSerializer)
 from datetime  import datetime
 from .authentication import MongoJWTAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -215,9 +215,6 @@ class UpdateInvoice(APIView):
                 status=400
             )
 
-from datetime import datetime
-from rest_framework.views import APIView
-from rest_framework.response import Response
 
 class SearchInvoice(APIView):
     authentication_classes = [MongoJWTAuthentication]
@@ -226,12 +223,21 @@ class SearchInvoice(APIView):
     def get(self, request):
         try:
             invoice_no = request.GET.get("invoice_no")
+            customerid = request.GET.get("customerid")
             start_date = request.GET.get("start_date")
             end_date = request.GET.get("end_date")
+
             invoices = Invoice.objects.filter(userid=request.user)
+
             # Filter by invoice number
             if invoice_no:
                 invoices = invoices.filter(invoice_no__icontains=invoice_no)
+
+            # Filter by customer
+            if customerid:
+                customer = Customer.objects.get(customerid=customerid)
+                invoices = invoices.filter(customer_id=customer)
+
             # Filter by start date
             if start_date:
                 start_date = datetime.strptime(start_date, "%Y-%m-%d")
@@ -247,6 +253,12 @@ class SearchInvoice(APIView):
             serializer = SInvoiceSerializer(invoices, many=True)
 
             return Response(serializer.data, status=200)
+
+        except Customer.DoesNotExist:
+            return Response(
+                {"error": "Customer not found"},
+                status=404
+            )
 
         except ValueError:
             return Response(
@@ -419,5 +431,42 @@ class Post_Income(APIView):
             }, status=400)
 
 
-
+class CreateIncome(APIView):
+    authentication_classes = [MongoJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        try:
+            serializer = CreateIncomeSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            validated_data = serializer.validated_data
+            invoice = None
+            invoice_no = validated_data.get("invoice_no")
+            if invoice_no:
+                invoice = Invoice.objects.get(invoice_no=invoice_no)
+            income = Income(
+                incomeid=uuid4().hex,
+                userid=request.user,
+                invoiceid=invoice,
+                source=validated_data["source"],
+                amount=validated_data["amount"],
+                description=validated_data.get("description", ""),
+                transaction_date=validated_data["transaction_date"],
+                created_at=datetime.utcnow(),
+                updated_at=datetime.utcnow()
+            )
+            income.save()
+            return Response(
+                {"success": "Income created successfully"},
+                status=201
+            )
+        except Invoice.DoesNotExist:
+            return Response(
+                {"error": "Invoice not found"},
+                status=404
+            )
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=400
+            )
             

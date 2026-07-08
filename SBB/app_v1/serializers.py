@@ -32,3 +32,10 @@ class CreateInvoiceSerializer(serializers.Serializer):
         choices=["paid", "unpaid", "partial"]
     )
         
+class CreateIncomeSerializer(serializers.Serializer):
+    incomeid = serializers.CharField(read_only=True)
+    invoiceid = serializers.CharField(required=False, allow_null=True)
+    source = serializers.CharField(max_length=255)
+    amount = serializers.FloatField()
+    description = serializers.CharField(required=False, allow_blank=True)
+    transaction_date = serializers.DateTimeField()
