@@ -23,6 +23,11 @@ class IncomeSerializer(serializers.DocumentSerializer):
         model=Income
         fields='__all__'
 
+class SIncomeSerializer(serializers.DocumentSerializer):
+    class Meta:
+        model=Income
+        fields='__all__'
+
 from rest_framework import serializers
 class CreateInvoiceSerializer(serializers.Serializer):
     customerid = serializers.CharField(required=False)
@@ -34,7 +39,7 @@ class CreateInvoiceSerializer(serializers.Serializer):
         
 class CreateIncomeSerializer(serializers.Serializer):
     incomeid = serializers.CharField(read_only=True)
-    invoiceid = serializers.CharField(required=False, allow_null=True)
+    invoice_no = serializers.CharField(required=False, allow_null=True)
     source = serializers.CharField(max_length=255)
     amount = serializers.FloatField()
     description = serializers.CharField(required=False, allow_blank=True)

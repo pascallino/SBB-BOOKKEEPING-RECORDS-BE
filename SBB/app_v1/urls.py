@@ -3,7 +3,8 @@ from django.urls import path, include
 from .views import (name, register, login 
       ,profile, get_all_profile, Post_Income, CreateCustomer, 
       DeleteCustomer, UpdateCustomer, GetCustomer, ListALlCustomers, 
-      CreateInvoice, UpdateInvoice, DeleteInvoice, SearchInvoice, CreateIncome)
+      CreateInvoice, UpdateInvoice, DeleteInvoice, SearchInvoice, 
+      CreateIncome, ListAllIncome, UpdateIncome, DeleteIncome, SearchIncome)
 
 
 urlpatterns = [
@@ -17,7 +18,10 @@ urlpatterns = [
       path("api/invoice/delete/<str:invoice_no>", DeleteInvoice.as_view(), name="delete-invoice"),
       path("api/invoices/search", SearchInvoice.as_view(), name="search-invoice"),
       path('api/income/create', CreateIncome.as_view(), name="this api is used to record a Payment") ,
-
+      path('api/income', ListAllIncome.as_view(), name="this api  List All Income Payment") ,
+      path('api/income/update/<incomeid>', UpdateIncome.as_view(), name="this api is used to update an Income Payment") ,
+      path('api/income/delete/<incomeid>', DeleteIncome.as_view(), name="this api is used to Delete an Income Payment") ,
+      path("api/income/search", SearchIncome.as_view(), name="search-Income"),
       path('api/customers/create', CreateCustomer.as_view(), name="this api is used to create a customer") ,
       path('api/customers/update/<customerid>', UpdateCustomer.as_view(), name="this api is used to Update a customer") ,
       path('api/customers/delete/<customerid>', DeleteCustomer.as_view(), name="this api is used to Delete a customer") ,
@@ -25,5 +29,5 @@ urlpatterns = [
        path('api/customers', ListALlCustomers.as_view(), name="this api is used to find all customer") ,
 
       
-      path('api/income', Post_Income.as_view(), name="this api is used to add an Income") ,
+     # path('api/income', Post_Income.as_view(), name="this api is used to add an Income") ,
 ]

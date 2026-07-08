@@ -10,7 +10,8 @@ from rest_framework_simplejwt.tokens import AccessToken
 from django.http import HttpResponse
 from .serializers import (UserSerializer, IncomeSerializer, 
                           CustomerSerializer, CreateInvoiceSerializer,
-                          SInvoiceSerializer, CreateIncomeSerializer)
+                          SInvoiceSerializer, CreateIncomeSerializer, 
+                          SIncomeSerializer)
 from datetime  import datetime
 from .authentication import MongoJWTAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -469,4 +470,164 @@ class CreateIncome(APIView):
                 {"error": str(e)},
                 status=400
             )
-            
+
+class ListAllIncome(APIView):
+    authentication_classes = [MongoJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            income = Income.objects.filter(userid=request.user)
+
+            serializer = SIncomeSerializer(income, many=True)
+
+            return Response(serializer.data, status=200)
+
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=400
+            )
+
+class UpdateIncome(APIView):
+    authentication_classes = [MongoJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request, incomeid):
+        try:
+            serializer = IncomeSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+
+            validated_data = serializer.validated_data
+
+            income = Income.objects.get(
+                incomeid=incomeid,
+                userid=request.user
+            )
+
+            invoice_no = validated_data.get("invoice_no")
+
+            if invoice_no:
+                income.invoiceid = Invoice.objects.get(invoice_no=invoice_no)
+            #else:
+            #    income.invoiceid = None
+            income.source = validated_data["source"]
+            income.amount = validated_data["amount"]
+            income.description = validated_data.get("description", "")
+            income.transaction_date = validated_data["transaction_date"]
+            income.updated_at = datetime.utcnow()
+            income.save()
+
+            return Response(
+                {"success": "Income updated successfully"},
+                status=200
+            )
+
+        except Income.DoesNotExist:
+            return Response(
+                {"error": "Income not found"},
+                status=404
+            )
+
+        except Invoice.DoesNotExist:
+            return Response(
+                {"error": "Invoice not found"},
+                status=404
+            )
+
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=400
+            )
+
+class DeleteIncome(APIView):
+    authentication_classes = [MongoJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    def delete(self, request, incomeid):
+        try:
+            income = Income.objects.get(
+                incomeid=incomeid,
+                userid=request.user
+            )
+
+            income.delete()
+
+            return Response(
+                {"success": "Income deleted successfully"},
+                status=200
+            )
+        except Income.DoesNotExist:
+            return Response(
+                {"error": "Income not found"},
+                status=404
+            )
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=400
+            )
+
+
+class SearchIncome(APIView):
+    authentication_classes = [MongoJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            incomeid = request.GET.get("incomeid")
+            invoiceid = request.GET.get("invoiceid")
+            source = request.GET.get("source")
+            start_date = request.GET.get("start_date")
+            end_date = request.GET.get("end_date")
+
+            incomes = Income.objects.filter(userid=request.user)
+
+            # Filter by income ID
+            if incomeid:
+                incomes = incomes.filter(incomeid__icontains=incomeid)
+
+            # Filter by invoice
+            if invoiceid:
+                invoice = Invoice.objects.get(id=invoiceid)
+                incomes = incomes.filter(invoiceid=invoice)
+
+            # Filter by source
+            if source:
+                incomes = incomes.filter(source__icontains=source)
+
+            # Filter by start date
+            if start_date:
+                start_date = datetime.strptime(start_date, "%Y-%m-%d")
+                incomes = incomes.filter(transaction_date__gte=start_date)
+
+            # Filter by end date
+            if end_date:
+                end_date = datetime.strptime(end_date, "%Y-%m-%d").replace(
+                    hour=23,
+                    minute=59,
+                    second=59
+                )
+                incomes = incomes.filter(transaction_date__lte=end_date)
+
+            serializer = SIncomeSerializer(incomes, many=True)
+
+            return Response(serializer.data, status=200)
+
+        except Invoice.DoesNotExist:
+            return Response(
+                {"error": "Invoice not found"},
+                status=404
+            )
+
+        except ValueError:
+            return Response(
+                {"error": "Date format should be YYYY-MM-DD"},
+                status=400
+            )
+
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=400
+            )
