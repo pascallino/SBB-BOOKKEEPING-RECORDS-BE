@@ -32,7 +32,30 @@ ALLOWED_HOSTS = [
                     ".onrender.com",
                     ]
 
+from corsheaders.defaults import default_headers
 
+CCORS_ALLOW_ALL_ORIGINS = True  # DEBUG ONLY
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "https://mico-store-be-1.onrender.com",
+]
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "content-type",
+]
+
+CORS_ALLOW_METHODS = [
+    "GET",
+    "POST",
+    "PUT",
+    "PATCH",
+    "DELETE",
+    "OPTIONS",
+]
+
+CORS_ALLOW_CREDENTIALS = True
+CORS_PREFLIGHT_MAX_AGE = 86400
 # Application definition
 
 INSTALLED_APPS = [
@@ -44,9 +67,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'app_v1',
     'rest_framework',
+    "corsheaders",
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",  # MUST be at the top
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
