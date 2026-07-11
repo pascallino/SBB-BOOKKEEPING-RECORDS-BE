@@ -1,0 +1,10 @@
+Django
+djangorestframework
+django-cors-headers
+djangorestframework-simplejwt
+asgiref
+gunicorn
+mongoengine
+pymongo
+dnspython
+git+https://github.com/umutbozkurt/django-rest-framework-mongoengine.git
