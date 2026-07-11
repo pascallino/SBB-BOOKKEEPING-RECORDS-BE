@@ -38,7 +38,7 @@ CCORS_ALLOW_ALL_ORIGINS = True  # DEBUG ONLY
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
-    "https://mico-store-be-1.onrender.com",
+    "https://sbb-bookkeeping-records-be.onrender.com",
 ]
 
 CORS_ALLOW_HEADERS = list(default_headers) + [
