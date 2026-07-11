@@ -3,7 +3,7 @@ from rest_framework.permissions import AllowAny
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import User, Income, Invoice, Customer
+from .models import User, Income, Invoice, Customer, Expense, Vendor
 from uuid import uuid4
 from rest_framework import status
 from rest_framework_simplejwt.tokens import AccessToken
@@ -11,7 +11,8 @@ from django.http import HttpResponse
 from .serializers import (UserSerializer, IncomeSerializer, 
                           CustomerSerializer, CreateInvoiceSerializer,
                           SInvoiceSerializer, CreateIncomeSerializer, 
-                          SIncomeSerializer)
+                          SIncomeSerializer, ExpenseSerializer, 
+                          VendorSerializer, SExpenseSerializer)
 from datetime  import datetime
 from .authentication import MongoJWTAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -625,6 +626,294 @@ class SearchIncome(APIView):
                 {"error": "Date format should be YYYY-MM-DD"},
                 status=400
             )
+
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=400
+            )
+
+
+class CreateExpense(APIView):
+    authentication_classes = [MongoJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        try:
+            serializer = ExpenseSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            data = serializer.validated_data
+            expense = Expense(
+                expenseid=f"EXP-{uuid4().hex[:8].upper()}",
+                userid=request.user,
+                category=data["category"],
+                amount=data["amount"],
+                description=data.get("description", ""),
+                expense_date=data["expense_date"],
+                created_at=datetime.utcnow(),
+                updated_at=datetime.utcnow()
+            )
+            expense.save()
+            return Response(
+                {"success": "Expense recorded successfully"},
+                status=201
+            )
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=400
+            )
+
+class ListAllExpenses(APIView):
+    authentication_classes = [MongoJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        try:
+            expenses = Expense.objects.filter(userid=request.user)
+            serializer = SExpenseSerializer(expenses, many=True)
+            return Response(serializer.data, status=200)
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=400
+            )
+
+class UpdateExpense(APIView):
+    authentication_classes = [MongoJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    def put(self, request, expenseid):
+        try:
+            serializer = ExpenseSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            data = serializer.validated_data
+            expense = Expense.objects.get(
+                expenseid=expenseid,
+                userid=request.user
+            )
+            expense.category = data["category"]
+            expense.amount = data["amount"]
+            expense.description = data.get("description", "")
+            expense.expense_date = data["expense_date"]
+            expense.updated_at = datetime.utcnow()
+            expense.save()
+            return Response(
+                {"success": "Expense updated successfully"},
+                status=200
+            )
+        except Expense.DoesNotExist:
+            return Response(
+                {"error": "Expense not found"},
+                status=404
+            )
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=400
+            )
+
+class DeleteExpense(APIView):
+    authentication_classes = [MongoJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    def delete(self, request, expenseid):
+        try:
+            expense = Expense.objects.get(
+                expenseid=expenseid,
+                userid=request.user
+            )
+            expense.delete()
+            return Response(
+                {"success": "Expense deleted successfully"},
+                status=200
+            )
+        except Expense.DoesNotExist:
+            return Response(
+                {"error": "Expense not found"},
+                status=404
+            )
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=400
+            )
+
+class SearchExpense(APIView):
+    authentication_classes = [MongoJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            expenseid = request.GET.get("expenseid")
+            category = request.GET.get("category")
+            start_date = request.GET.get("start_date")
+            end_date = request.GET.get("end_date")
+
+            expenses = Expense.objects.filter(userid=request.user)
+
+            # Filter by Expense ID
+            if expenseid:
+                expenses = expenses.filter(expenseid__icontains=expenseid)
+
+            # Filter by Category
+            if category:
+                expenses = expenses.filter(category__icontains=category)
+
+            # Filter by Start Date
+            if start_date:
+                start_date = datetime.strptime(start_date, "%Y-%m-%d")
+                expenses = expenses.filter(expense_date__gte=start_date)
+
+            # Filter by End Date
+            if end_date:
+                end_date = datetime.strptime(end_date, "%Y-%m-%d").replace(
+                    hour=23,
+                    minute=59,
+                    second=59
+                )
+                expenses = expenses.filter(expense_date__lte=end_date)
+            serializer = SExpenseSerializer(expenses, many=True)
+            return Response(serializer.data, status=200)
+        except ValueError:
+            return Response(
+                {"error": "Date format should be YYYY-MM-DD"},
+                status=400
+            )
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=400
+            )
+
+class CreateVendor(APIView):
+    authentication_classes = [MongoJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        try:
+            serializer = VendorSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            data = serializer.validated_data
+            vendor = Vendor(
+                vendorid=f"VEND-{uuid4().hex[:8].upper()}",
+                userid=request.user,
+                business_name=data["business_name"],
+                contact_person=data.get("contact_person", ""),
+                email=data.get("email", ""),
+                phone=data.get("phone", ""),
+                address=data.get("address", ""),
+                created_at=datetime.utcnow(),
+                updated_at=datetime.utcnow()
+            )
+            vendor.save()
+            return Response(
+                {"success": "Vendor created successfully"},
+                status=201
+            )
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=400
+            )
+
+class ListAllVendors(APIView):
+    authentication_classes = [MongoJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            vendors = Vendor.objects.filter(userid=request.user)
+            serializer = VendorSerializer(vendors, many=True)
+            return Response(serializer.data, status=200)
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=400
+            )
+
+class UpdateVendor(APIView):
+    authentication_classes = [MongoJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    def put(self, request, vendorid):
+        try:
+            serializer = VendorSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+
+            data = serializer.validated_data
+
+            vendor = Vendor.objects.get(
+                vendorid=vendorid,
+                userid=request.user
+            )
+
+            vendor.business_name = data["business_name"]
+            vendor.contact_person = data.get("contact_person", "")
+            vendor.email = data.get("email", "")
+            vendor.phone = data.get("phone", "")
+            vendor.address = data.get("address", "")
+            vendor.updated_at = datetime.utcnow()
+            vendor.save()
+            return Response(
+                {"success": "Vendor updated successfully"},
+                status=200
+            )
+
+        except Vendor.DoesNotExist:
+            return Response(
+                {"error": "Vendor not found"},
+                status=404
+            )
+
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=400
+            )
+
+class DeleteVendor(APIView):
+    authentication_classes = [MongoJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    def delete(self, request, vendorid):
+        try:
+            vendor = Vendor.objects.get(
+                vendorid=vendorid,
+                userid=request.user
+            )
+            vendor.delete()
+            return Response(
+                {"success": "Vendor deleted successfully"},
+                status=200
+            )
+        except Vendor.DoesNotExist:
+            return Response(
+                {"error": "Vendor not found"},
+                status=404
+            )
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=400
+            )
+            
+class SearchVendor(APIView):
+    authentication_classes = [MongoJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        try:
+            vendorid = request.GET.get("vendorid")
+            business_name = request.GET.get("business_name")
+            contact_person = request.GET.get("contact_person")
+            vendors = Vendor.objects.filter(userid=request.user)
+            if vendorid:
+                vendors = vendors.filter(vendorid__icontains=vendorid)
+
+            if business_name:
+                vendors = vendors.filter(
+                    business_name__icontains=business_name
+                )
+            if contact_person:
+                vendors = vendors.filter(
+                    contact_person__icontains=contact_person
+                )
+            serializer = VendorSerializer(vendors, many=True)
+
+            return Response(serializer.data, status=200)
 
         except Exception as e:
             return Response(

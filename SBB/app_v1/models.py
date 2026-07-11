@@ -75,3 +75,24 @@ class Income(Document):
     transaction_date = DateTimeField(required=True)
     created_at = DateTimeField(default=datetime.utcnow)
     updated_at = DateTimeField(default=datetime.utcnow)
+
+class Expense(Document):
+    expenseid = StringField()
+    userid = ReferenceField(User)
+    category = StringField()
+    amount = FloatField()
+    description = StringField()
+    expense_date = DateTimeField()
+    created_at = DateTimeField(default=datetime.utcnow)
+    updated_at = DateTimeField(default=datetime.utcnow)
+
+class Vendor(Document):
+    vendorid = StringField()
+    userid = ReferenceField(User)
+    business_name = StringField()
+    contact_person = StringField()
+    email = EmailField()
+    phone = StringField()
+    address = StringField()
+    created_at = DateTimeField(default=datetime.utcnow)
+    updated_at = DateTimeField(default=datetime.utcnow)
