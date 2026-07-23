@@ -2,7 +2,7 @@ from django.db import models
 from django.db import models
 from mongoengine import (Document, ReferenceField,
       ListField, StringField, EmailField, DateField,
-      DateTimeField, FloatField)
+      DateTimeField, FloatField, IntField, BooleanField)
 from datetime import datetime
 from django.contrib.auth.hashers import check_password, make_password
 from uuid import uuid4
@@ -96,3 +96,17 @@ class Vendor(Document):
     address = StringField()
     created_at = DateTimeField(default=datetime.utcnow)
     updated_at = DateTimeField(default=datetime.utcnow)
+    
+
+class Plan(Document):
+    planid = StringField()
+    name = StringField()          # Basic, Pro, Enterprise
+    price = FloatField()
+    billing_cycle = StringField(
+        choices=["monthly", "yearly"]
+    )
+    max_customers = IntField()
+    max_invoices = IntField()
+    max_users = IntField()
+    active = BooleanField(default=True)
+    created_at = DateTimeField(default=datetime.utcnow)

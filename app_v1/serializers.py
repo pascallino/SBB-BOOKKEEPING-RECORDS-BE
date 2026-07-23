@@ -1,4 +1,4 @@
-from .models import  User, Income, Customer, Invoice, Expense, Vendor
+from .models import  User, Income, Customer, Invoice, Expense, Vendor, Plan
 from rest_framework_mongoengine import serializers
 
 
@@ -41,6 +41,11 @@ class SExpenseSerializer(serializers.DocumentSerializer):
 class VendorSerializer(serializers.DocumentSerializer):
     class Meta:
         model=Vendor
+        fields='__all__'
+
+class PlanSerializer(serializers.DocumentSerializer):
+    class Meta:
+        model=Plan
         fields='__all__'
 
 

@@ -3,7 +3,7 @@ from rest_framework.permissions import AllowAny
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import User, Income, Invoice, Customer, Expense, Vendor
+from .models import User, Income, Invoice, Customer, Expense, Vendor, Plan
 from uuid import uuid4
 from rest_framework import status
 from rest_framework_simplejwt.tokens import AccessToken
@@ -12,7 +12,7 @@ from .serializers import (UserSerializer, IncomeSerializer,
                           CustomerSerializer, CreateInvoiceSerializer,
                           SInvoiceSerializer, CreateIncomeSerializer, 
                           SIncomeSerializer, ExpenseSerializer, 
-                          VendorSerializer, SExpenseSerializer)
+                          VendorSerializer, SExpenseSerializer, PlanSerializer)
 from datetime  import datetime
 from .authentication import MongoJWTAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -56,7 +56,6 @@ class login(APIView):
     def post(self, request):
         email = request.data.get("email")
         password = request.data.get("password")
-
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
@@ -915,6 +914,37 @@ class SearchVendor(APIView):
 
             return Response(serializer.data, status=200)
 
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=400
+            )
+
+
+class CreatePlan(APIView):
+    authentication_classes = [MongoJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        try:
+            serializer = PlanSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            validated_data = serializer.validated_data
+            plan = Plan(
+                planid=f"PLAN-{uuid4().hex[:6].upper()}",
+                name=validated_data["name"],
+                price=validated_data["price"],
+                billing_cycle=validated_data["billing_cycle"],
+                max_customers=validated_data["max_customers"],
+                max_invoices=validated_data["max_invoices"],
+                max_users=validated_data["max_users"],
+                active=validated_data["active"],
+                created_at=datetime.utcnow()
+            )
+            plan.save()
+            return Response(
+                {"success": "Plan created successfully"},
+                status=201
+            )
         except Exception as e:
             return Response(
                 {"error": str(e)},
