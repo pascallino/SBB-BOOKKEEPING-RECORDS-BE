@@ -950,3 +950,36 @@ class CreatePlan(APIView):
                 {"error": str(e)},
                 status=400
             )
+
+
+class UpdatePlan(APIView):
+    authentication_classes = [MongoJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    def put(self, request, planid):
+        try:
+            serializer = PlanSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            validated_data = serializer.validated_data
+            plan = Plan.objects.get(planid=planid)
+            plan.name = validated_data["name"]
+            plan.price = validated_data["price"]
+            plan.billing_cycle = validated_data["billing_cycle"]
+            plan.max_customers = validated_data["max_customers"]
+            plan.max_invoices = validated_data["max_invoices"]
+            plan.max_users = validated_data["max_users"]
+            plan.active = validated_data["active"]
+            plan.save()
+            return Response(
+                {"success": "Plan updated successfully"},
+                status=200
+            )
+        except Plan.DoesNotExist:
+            return Response(
+                {"error": "Plan not found"},
+                status=404
+            )
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=400
+            )
