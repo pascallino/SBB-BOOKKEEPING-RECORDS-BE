@@ -42,7 +42,7 @@ urlpatterns = [
       path("api/vendor/search", SearchVendor.as_view(),name="Search Vendor"),
       path("api/plans/create", CreatePlan.as_view(), name="Create Plan"),
       # path("api/plans", ListAllPlans.as_view(), name="List Plans"),
-      path("api/plans/update/<str:id>", UpdatePlan.as_view(), name="Update Plan"),
+      path("api/plans/update/<str:planid>", UpdatePlan.as_view(), name="Update Plan"),
      # path("api/plans/<str:id>", DeletePlan.as_view(), name="Delete Plan"),
      # path("api/plans/search", SearchPlan.as_view(), name="Search Plan"),
       
