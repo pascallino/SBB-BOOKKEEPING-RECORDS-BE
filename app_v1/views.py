@@ -983,3 +983,25 @@ class UpdatePlan(APIView):
                 {"error": str(e)},
                 status=400
             )
+
+class DeletePlan(APIView):
+    authentication_classes = [MongoJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    def delete(self, request, planid):
+        try:
+            plan = Plan.objects.get(planid=planid)
+            plan.delete()
+            return Response(
+                {"success": "Plan deleted successfully"},
+                status=200
+            )
+        except Plan.DoesNotExist:
+            return Response(
+                {"error": "Plan not found"},
+                status=404
+            )
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=400
+            )
