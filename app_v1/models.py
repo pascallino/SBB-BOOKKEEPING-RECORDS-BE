@@ -110,3 +110,36 @@ class Plan(Document):
     max_users = IntField()
     active = BooleanField(default=True)
     created_at = DateTimeField(default=datetime.utcnow)
+    
+class Subscription(Document):
+    subscriptionid = StringField()
+    userid = ReferenceField(User)
+    planid = ReferenceField(Plan)
+    status = StringField(
+        choices=[
+            "active",
+            "expired",
+            "cancelled",
+            "pending"
+        ]
+    )
+    start_date = DateTimeField()
+    end_date = DateTimeField()
+    created_at = DateTimeField(default=datetime.utcnow)
+    updated_at = DateTimeField(default=datetime.utcnow)
+
+class SubscriptionPayment(Document):
+    paymentid = StringField()
+    userid = ReferenceField(User)
+    subscriptionid = ReferenceField(Subscription)
+    amount = FloatField()
+    payment_method = StringField()
+    transaction_reference = StringField()
+    status = StringField(
+        choices=[
+            "success",
+            "pending",
+            "failed"
+        ]
+    )
+    created_at = DateTimeField(default=datetime.utcnow)
