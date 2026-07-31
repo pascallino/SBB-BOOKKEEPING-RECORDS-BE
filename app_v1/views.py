@@ -12,7 +12,9 @@ from .serializers import (UserSerializer, IncomeSerializer,
                           CustomerSerializer, CreateInvoiceSerializer,
                           SInvoiceSerializer, CreateIncomeSerializer, 
                           SIncomeSerializer, ExpenseSerializer, 
-                          VendorSerializer, SExpenseSerializer, PlanSerializer)
+                          VendorSerializer, SExpenseSerializer, PlanSerializer, 
+                          SubscriptionSerializer,
+                          CreateSubscriptionSerializer)
 from datetime  import datetime
 from .authentication import MongoJWTAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -1003,5 +1005,72 @@ class DeletePlan(APIView):
         except Exception as e:
             return Response(
                 {"error": str(e)},
+                status=400
+            )
+
+from uuid import uuid4
+from datetime import datetime, timedelta
+
+class CreateSubscription(APIView):
+    authentication_classes = [MongoJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            serializer = CreateSubscriptionSerializer(
+                data=request.data
+            )
+            serializer.is_valid(raise_exception=True)
+            validated_data = serializer.validated_data
+            plan = Plan.objects.get(
+                planid=validated_data["planid"],
+                active=True
+            )
+            # Check if user already has an active subscription
+            existing_subscription = Subscription.objects(
+                userid=request.user,
+                status="active"
+            ).first()
+            if existing_subscription:
+                return Response(
+                    {
+                        "error": "You already have an active subscription. Use the else upgrade or renew your subscription ."
+                    },
+                    status=400
+                )
+            start_date = datetime.utcnow()
+            if plan.billing_cycle == "monthly":
+                end_date = start_date + timedelta(days=30)
+            else:
+                end_date = start_date + timedelta(days=365)
+            subscription = Subscription(
+                subscriptionid=f"SUB-{uuid4().hex[:8].upper()}",
+                userid=request.user,
+                planid=plan,
+                status="active",
+                start_date=start_date,
+                end_date=end_date,
+                created_at=datetime.utcnow(),
+                updated_at=datetime.utcnow()
+            )
+            subscription.save()
+            return Response(
+                {
+                    "success": "Subscription created successfully"
+                },
+                status=201
+            )
+        except Plan.DoesNotExist:
+            return Response(
+                {
+                    "error": "Plan not found"
+                },
+                status=404
+            )
+        except Exception as e:
+            return Response(
+                {
+                    "error": str(e)
+                },
                 status=400
             )

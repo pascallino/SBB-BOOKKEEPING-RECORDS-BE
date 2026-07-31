@@ -1,4 +1,4 @@
-from .models import  User, Income, Customer, Invoice, Expense, Vendor, Plan
+from .models import  User, Income, Customer, Invoice, Expense, Vendor, Plan, Subscription
 from rest_framework_mongoengine import serializers
 
 
@@ -48,6 +48,11 @@ class PlanSerializer(serializers.DocumentSerializer):
         model=Plan
         fields='__all__'
 
+class SubscriptionSerializer(serializers.DocumentSerializer):
+    class Meta:
+        model=Subscription
+        fields='__all__'
+
 
 from rest_framework import serializers
 class CreateInvoiceSerializer(serializers.Serializer):
@@ -65,4 +70,8 @@ class CreateIncomeSerializer(serializers.Serializer):
     amount = serializers.FloatField()
     description = serializers.CharField(required=False, allow_blank=True)
     transaction_date = serializers.DateTimeField()
+
+
+class CreateSubscriptionSerializer(serializers.Serializer):
+    planid = serializers.CharField()
 
