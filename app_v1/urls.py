@@ -48,7 +48,7 @@ urlpatterns = [
      # path("api/plans/search", SearchPlan.as_view(), name="Search Plan"),
      # path('api/income', Post_Income.as_view(), name="this api is used to add an Income") ,
       path("api/subscription/create", CreateSubscription.as_view(), name="Create Subscription"),
-     # path("api/subscription", GetSubscription.as_view(), name="Get Subscription"),
+      path("api/subscription", GetSubscription.as_view(), name="Get Subscription"),
 
 
 ]

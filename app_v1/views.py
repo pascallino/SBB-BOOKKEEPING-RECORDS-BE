@@ -1063,8 +1063,78 @@ class CreateSubscription(APIView):
                 {
                     "error": "Plan not found"
                 },
+                status=404)
+        except Exception as e:
+            return Response({
+                    "error": str(e)
+                },
+                status=400
+            )
+
+class GetSubscription(APIView):
+    authentication_classes = [MongoJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            subscription = Subscription.objects.get(
+                userid=request.user,
+                status="active"
+            )
+
+            plan = subscription.planid
+
+            # Calculate remaining days
+            now = datetime.utcnow()
+            days_remaining = max(
+                0,
+                (subscription.end_date - now).days
+            )
+
+            customer_count = Customer.objects.filter(
+                userid=request.user
+            ).count()
+
+            invoice_count = Invoice.objects.filter(
+                userid=request.user
+            ).count()
+
+            response = {
+                "subscriptionid": subscription.subscriptionid,
+                "planid": plan.planid,
+                "plan_name": plan.name,
+                "price": plan.price,
+                "billing_cycle": plan.billing_cycle,
+                "status": subscription.status,
+                "start_date": subscription.start_date,
+                "end_date": subscription.end_date,
+                "days_remaining": days_remaining,
+
+                "max_customers": plan.max_customers,
+                "max_invoices": plan.max_invoices,
+                "max_users": plan.max_users,
+
+                "customers_used": customer_count,
+                "customers_remaining": (
+                    -1 if plan.max_customers == -1
+                    else max(0, plan.max_customers - customer_count)
+                ),
+
+                "invoices_used": invoice_count,
+                "invoices_remaining": (
+                    -1 if plan.max_invoices == -1
+                    else max(0, plan.max_invoices - invoice_count)
+                )
+            }
+
+        except Subscription.DoesNotExist:
+            return Response(
+                {
+                    "error": "No active subscription found."
+                },
                 status=404
             )
+
         except Exception as e:
             return Response(
                 {
