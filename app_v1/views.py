@@ -1008,8 +1008,6 @@ class DeletePlan(APIView):
                 status=400
             )
 
-from uuid import uuid4
-from datetime import datetime, timedelta
 
 class CreateSubscription(APIView):
     authentication_classes = [MongoJWTAuthentication]
