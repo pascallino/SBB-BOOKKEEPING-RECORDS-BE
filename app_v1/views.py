@@ -1126,7 +1126,7 @@ class GetSubscription(APIView):
                     else max(0, plan.max_invoices - invoice_count)
                 )
             }
-
+            return Response(response, status=200)
         except Subscription.DoesNotExist:
             return Response(
                 {
