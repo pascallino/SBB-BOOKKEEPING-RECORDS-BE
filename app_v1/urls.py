@@ -7,7 +7,7 @@ from .views import (name, register, login
       CreateIncome, ListAllIncome, UpdateIncome, DeleteIncome, SearchIncome,
       CreateCustomer, CreateExpense, ListAllExpenses, UpdateExpense, 
       SearchExpense, DeleteExpense, CreateVendor, ListAllVendors, UpdateVendor,
-      DeleteVendor, SearchVendor, CreatePlan, UpdatePlan, DeletePlan, CreateSubscription)
+      DeleteVendor, SearchVendor, CreatePlan, UpdatePlan, DeletePlan, CreateSubscription, GetSubscription)
 
 
 urlpatterns = [
