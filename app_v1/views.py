@@ -3,7 +3,7 @@ from rest_framework.permissions import AllowAny
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import User, Income, Invoice, Customer, Expense, Vendor, Plan
+from .models import User, Income, Invoice, Customer, Expense, Vendor, Plan, Subscription
 from uuid import uuid4
 from rest_framework import status
 from rest_framework_simplejwt.tokens import AccessToken
