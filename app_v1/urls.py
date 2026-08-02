@@ -7,7 +7,8 @@ from .views import (name, register, login
       CreateIncome, ListAllIncome, UpdateIncome, DeleteIncome, SearchIncome,
       CreateCustomer, CreateExpense, ListAllExpenses, UpdateExpense, 
       SearchExpense, DeleteExpense, CreateVendor, ListAllVendors, UpdateVendor,
-      DeleteVendor, SearchVendor, CreatePlan, UpdatePlan, DeletePlan, CreateSubscription, GetSubscription)
+      DeleteVendor, SearchVendor, CreatePlan, UpdatePlan, DeletePlan, CreateSubscription, 
+      GetSubscription, UpdateSubscription)
 
 
 urlpatterns = [
@@ -49,6 +50,7 @@ urlpatterns = [
      # path('api/income', Post_Income.as_view(), name="this api is used to add an Income") ,
       path("api/subscription/create", CreateSubscription.as_view(), name="Create Subscription"),
       path("api/subscription", GetSubscription.as_view(), name="Get Subscription"),
+      path("api/subscription/update", UpdateSubscription.as_view(), name="upgrade or renew Subscription"),
 
 
 ]

@@ -75,3 +75,6 @@ class CreateIncomeSerializer(serializers.Serializer):
 class CreateSubscriptionSerializer(serializers.Serializer):
     planid = serializers.CharField()
 
+class UpdateSubscriptionSerializer(serializers.Serializer):
+    planid = serializers.CharField()
+

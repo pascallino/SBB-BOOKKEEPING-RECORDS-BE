@@ -14,7 +14,7 @@ from .serializers import (UserSerializer, IncomeSerializer,
                           SIncomeSerializer, ExpenseSerializer, 
                           VendorSerializer, SExpenseSerializer, PlanSerializer, 
                           SubscriptionSerializer,
-                          CreateSubscriptionSerializer)
+                          CreateSubscriptionSerializer, UpdateSubscriptionSerializer)
 from datetime  import datetime, timedelta
 from .authentication import MongoJWTAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -1136,6 +1136,122 @@ class GetSubscription(APIView):
             )
 
         except Exception as e:
+            return Response(
+                {
+                    "error": str(e)
+                },
+                status=400
+            )
+
+
+class UpdateSubscription(APIView):
+    authentication_classes = [MongoJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request):
+
+        try:
+
+            serializer = UpdateSubscriptionSerializer(
+                data=request.data
+            )
+
+            serializer.is_valid(raise_exception=True)
+
+            validated_data = serializer.validated_data
+
+            subscription = Subscription.objects.get(
+                userid=request.user
+            )
+
+            new_plan = Plan.objects.get(
+                planid=validated_data["planid"],
+                active=True
+            )
+
+            now = datetime.utcnow()
+
+            # ------------------------------
+            # RENEW SAME PLAN
+            # ------------------------------
+            if subscription.planid.planid == new_plan.planid:
+
+                if subscription.end_date > now:
+
+                    # Extend from current expiry
+                    if new_plan.billing_cycle == "monthly":
+                        subscription.end_date += timedelta(days=30)
+                    else:
+                        subscription.end_date += timedelta(days=365)
+
+                else:
+
+                    # Subscription already expired
+                    subscription.start_date = now
+
+                    if new_plan.billing_cycle == "monthly":
+                        subscription.end_date = now + timedelta(days=30)
+                    else:
+                        subscription.end_date = now + timedelta(days=365)
+
+                subscription.status = "active"
+                subscription.updated_at = now
+                subscription.save()
+
+                return Response(
+                    {
+                        "success": "Subscription renewed successfully."
+                    },
+                    status=200
+                )
+
+            # ------------------------------
+            # UPGRADE / DOWNGRADE
+            # ------------------------------
+
+            subscription.previous_plan = subscription.planid
+            subscription.planid = new_plan
+            subscription.status = "active"
+
+            # Restart billing cycle
+            subscription.start_date = now
+
+            if new_plan.billing_cycle == "monthly":
+                subscription.end_date = now + timedelta(days=30)
+            else:
+                subscription.end_date = now + timedelta(days=365)
+
+            subscription.updated_at = now
+
+            subscription.save()
+
+            return Response(
+                {
+                    "success": "Subscription updated successfully."
+                },
+                status=200
+            )
+
+        except Subscription.DoesNotExist:
+
+            return Response(
+                {
+                    "error": "Subscription not found."
+                },
+                status=404
+            )
+
+        except Plan.DoesNotExist:
+
+            return Response(
+                {
+                    "error": "Plan not found."
+                },
+                status=404
+            )
+
+        except Exception as e:
+
             return Response(
                 {
                     "error": str(e)
