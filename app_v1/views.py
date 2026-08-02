@@ -18,7 +18,7 @@ from .serializers import (UserSerializer, IncomeSerializer,
 from datetime  import datetime, timedelta
 from .authentication import MongoJWTAuthentication
 from rest_framework.permissions import IsAuthenticated
-from .permissions import HasActiveSubscription
+from .permissions import HasActiveSubscription, CanCreateCustomer, CanCreateInvoice
 
 # Create your views here.
 
@@ -135,7 +135,8 @@ class CreateInvoice(APIView):
     authentication_classes = [MongoJWTAuthentication]
     permission_classes = [
         IsAuthenticated,
-        HasActiveSubscription
+        HasActiveSubscription,
+        CanCreateInvoice
     ]
     def post(self, request):
         try:
@@ -310,7 +311,8 @@ class CreateCustomer(APIView):
     authentication_classes = [MongoJWTAuthentication]
     permission_classes = [
         IsAuthenticated,
-        HasActiveSubscription
+        HasActiveSubscription,
+        CanCreateCustomer
     ]
     def post(self, request):
         try:
