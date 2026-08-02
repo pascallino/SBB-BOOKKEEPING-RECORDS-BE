@@ -18,6 +18,7 @@ from .serializers import (UserSerializer, IncomeSerializer,
 from datetime  import datetime, timedelta
 from .authentication import MongoJWTAuthentication
 from rest_framework.permissions import IsAuthenticated
+from .permissions import HasActiveSubscription
 
 # Create your views here.
 
@@ -132,7 +133,10 @@ class get_all_profile(APIView):
 
 class CreateInvoice(APIView):
     authentication_classes = [MongoJWTAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [
+        IsAuthenticated,
+        HasActiveSubscription
+    ]
     def post(self, request):
         try:
             serializer = CreateInvoiceSerializer(data=request.data)
@@ -170,7 +174,10 @@ class CreateInvoice(APIView):
 
 class UpdateInvoice(APIView):
     authentication_classes = [MongoJWTAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [
+        IsAuthenticated,
+        HasActiveSubscription
+    ]
 
     def put(self, request, id):
         try:
@@ -277,7 +284,10 @@ class SearchInvoice(APIView):
 
 class DeleteInvoice(APIView):
     authentication_classes = [MongoJWTAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [
+        IsAuthenticated,
+        HasActiveSubscription
+    ]
     def delete(self, request, invoice_no):
         try:
             invoice = Invoice.objects.get(
@@ -298,7 +308,10 @@ class DeleteInvoice(APIView):
 
 class CreateCustomer(APIView):
     authentication_classes = [MongoJWTAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [
+        IsAuthenticated,
+        HasActiveSubscription
+    ]
     def post(self, request):
         try:
             data = CustomerSerializer(data=request.data)
@@ -322,7 +335,10 @@ class CreateCustomer(APIView):
 
 class UpdateCustomer(APIView):
     authentication_classes = [MongoJWTAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [
+        IsAuthenticated,
+        HasActiveSubscription
+    ]
     def put(self, request, customerid):
         try:
             customer = Customer.objects.get(customerid=customerid)
@@ -352,7 +368,10 @@ class UpdateCustomer(APIView):
 
 class DeleteCustomer(APIView):
     authentication_classes = [MongoJWTAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [
+        IsAuthenticated,
+        HasActiveSubscription
+    ]
     def delete(self, request, customerid):
         try:
             customer = Customer.objects.get(customerid=customerid)
@@ -374,8 +393,11 @@ class DeleteCustomer(APIView):
 
 class GetCustomer(APIView):
     authentication_classes = [MongoJWTAuthentication]
-    permission_classes = [IsAuthenticated]
-
+    permission_classes = [
+        IsAuthenticated,
+        HasActiveSubscription
+    ]
+    
     def get(self, request, customerid):
         try:
             customer = Customer.objects.get(customerid=customerid)
@@ -436,7 +458,10 @@ class Post_Income(APIView):
 
 class CreateIncome(APIView):
     authentication_classes = [MongoJWTAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [
+        IsAuthenticated,
+        HasActiveSubscription
+    ]
     def post(self, request):
         try:
             serializer = CreateIncomeSerializer(data=request.data)
@@ -493,7 +518,10 @@ class ListAllIncome(APIView):
 
 class UpdateIncome(APIView):
     authentication_classes = [MongoJWTAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [
+        IsAuthenticated,
+        HasActiveSubscription
+    ]
 
     def put(self, request, incomeid):
         try:
@@ -545,7 +573,10 @@ class UpdateIncome(APIView):
 
 class DeleteIncome(APIView):
     authentication_classes = [MongoJWTAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [
+        IsAuthenticated,
+        HasActiveSubscription
+    ]
     def delete(self, request, incomeid):
         try:
             income = Income.objects.get(
@@ -637,7 +668,10 @@ class SearchIncome(APIView):
 
 class CreateExpense(APIView):
     authentication_classes = [MongoJWTAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [
+        IsAuthenticated,
+        HasActiveSubscription
+    ]
     def post(self, request):
         try:
             serializer = ExpenseSerializer(data=request.data)
@@ -680,7 +714,10 @@ class ListAllExpenses(APIView):
 
 class UpdateExpense(APIView):
     authentication_classes = [MongoJWTAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [
+        IsAuthenticated,
+        HasActiveSubscription
+    ]
     def put(self, request, expenseid):
         try:
             serializer = ExpenseSerializer(data=request.data)
@@ -713,7 +750,10 @@ class UpdateExpense(APIView):
 
 class DeleteExpense(APIView):
     authentication_classes = [MongoJWTAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [
+        IsAuthenticated,
+        HasActiveSubscription
+    ]
     def delete(self, request, expenseid):
         try:
             expense = Expense.objects.get(
@@ -785,7 +825,10 @@ class SearchExpense(APIView):
 
 class CreateVendor(APIView):
     authentication_classes = [MongoJWTAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [
+        IsAuthenticated,
+        HasActiveSubscription
+    ]
     def post(self, request):
         try:
             serializer = VendorSerializer(data=request.data)
@@ -830,7 +873,10 @@ class ListAllVendors(APIView):
 
 class UpdateVendor(APIView):
     authentication_classes = [MongoJWTAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [
+        IsAuthenticated,
+        HasActiveSubscription
+    ]
     def put(self, request, vendorid):
         try:
             serializer = VendorSerializer(data=request.data)
@@ -869,7 +915,10 @@ class UpdateVendor(APIView):
 
 class DeleteVendor(APIView):
     authentication_classes = [MongoJWTAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [
+        IsAuthenticated,
+        HasActiveSubscription
+    ]
     def delete(self, request, vendorid):
         try:
             vendor = Vendor.objects.get(
@@ -1227,7 +1276,7 @@ class UpdateSubscription(APIView):
 
             return Response(
                 {
-                    "success": "Subscription updated successfully."
+                    "success": "Subscription upgraded successfully."
                 },
                 status=200
             )
