@@ -8,13 +8,39 @@ from django.contrib.auth.hashers import check_password, make_password
 from uuid import uuid4
 # Create your models here.
 
+class Business(Document):
+    businessid = StringField(unique=True, required=True)
+    name = StringField(required=True)
+    email = EmailField()
+    phone = StringField()
+    address = StringField()
+
+    created_by = ReferenceField("User", required=True)
+
+    created_at = DateTimeField(default=datetime.utcnow)
+    updated_at = DateTimeField(default=datetime.utcnow)
+
+
+class BusinessMember(Document):
+    businessid = ReferenceField("Business", required=True)
+    userid = ReferenceField("User", required=True)
+
+    role = StringField(
+        choices=["owner", "admin",  "staff"],
+        default="staff"
+    )
+    active = BooleanField(default=True)
+    created_at = DateTimeField(default=datetime.utcnow)
+    updated_at = DateTimeField(default=datetime.utcnow)
+
+
+
 class User(Document):
     userid = StringField()
     first_name = StringField()
     last_name = StringField()
     email = EmailField(unique=True)
     password = StringField()
-    business_name = StringField()
     created_at = DateTimeField()
     
     def set_password(self, password):
@@ -31,6 +57,7 @@ class User(Document):
 class Customer(Document):
     userid = ReferenceField(User)
     customerid = StringField()
+    businessid = ReferenceField("Business", required=True)
     first_name = StringField()
     last_name = StringField()
     business_name = StringField()
@@ -43,6 +70,7 @@ class Customer(Document):
 class Invoice(Document):
     userid = ReferenceField(User)
     customer_id = ReferenceField(Customer, null=True)
+    businessid = ReferenceField("Business", required=True)
     invoice_no = StringField()
     amount = FloatField()
     due_date = DateTimeField(required=False)
@@ -69,6 +97,7 @@ class Income(Document):
     incomeid = StringField()
     userid = ReferenceField(User)
     invoiceid = ReferenceField(Invoice, null=True)
+    businessid = ReferenceField("Business", required=True)
     source = StringField()
     amount = FloatField()
     description = StringField()
@@ -79,6 +108,7 @@ class Income(Document):
 class Expense(Document):
     expenseid = StringField()
     userid = ReferenceField(User)
+    businessid = ReferenceField("Business", required=True)
     category = StringField()
     amount = FloatField()
     description = StringField()
@@ -89,6 +119,7 @@ class Expense(Document):
 class Vendor(Document):
     vendorid = StringField()
     userid = ReferenceField(User)
+    businessid = ReferenceField("Business", required=True)
     business_name = StringField()
     contact_person = StringField()
     email = EmailField()
@@ -113,7 +144,7 @@ class Plan(Document):
     
 class Subscription(Document):
     subscriptionid = StringField()
-    userid = ReferenceField(User)
+    businessid = ReferenceField("Business", required=True)
     planid = ReferenceField(Plan)
     status = StringField(
         choices=[

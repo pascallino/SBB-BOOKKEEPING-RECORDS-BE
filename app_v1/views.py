@@ -3,7 +3,7 @@ from rest_framework.permissions import AllowAny
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import User, Income, Invoice, Customer, Expense, Vendor, Plan, Subscription
+from .models import Business, User, Income, Invoice, Customer, Expense, Vendor, Plan, Subscription
 from uuid import uuid4
 from rest_framework import status
 from rest_framework_simplejwt.tokens import AccessToken
@@ -29,6 +29,165 @@ def name(request):
 POST   SBB/v1/api/auth/login
 GET    SBB/v1/api/auth/profile/
 PUT    SBB/v1/api/auth/profile/ """
+
+import uuid
+import bcrypt
+
+
+class RegisterBusiness(APIView):
+
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+
+        try:
+            # --------------------------------
+            # Get user data
+            # --------------------------------
+            first_name = request.data.get("first_name")
+            last_name = request.data.get("last_name")
+            email = request.data.get("email")
+            password = request.data.get("password")
+
+            # --------------------------------
+            # Get business data
+            # --------------------------------
+            business_name = request.data.get("business_name")
+            business_email = request.data.get("business_email")
+            business_phone = request.data.get("business_phone")
+            business_address = request.data.get("business_address")
+
+            # --------------------------------
+            # Validate required fields
+            # --------------------------------
+            if not first_name:
+                return Response(
+                    {"error": "First name is required"},
+                    status=400
+                )
+
+            if not last_name:
+                return Response(
+                    {"error": "Last name is required"},
+                    status=400
+                )
+
+            if not email:
+                return Response(
+                    {"error": "Email is required"},
+                    status=400
+                )
+
+            if not password:
+                return Response(
+                    {"error": "Password is required"},
+                    status=400
+                )
+
+            if not business_name:
+                return Response(
+                    {"error": "Business name is required"},
+                    status=400
+                )
+
+            # --------------------------------
+            # Check if user already exists
+            # --------------------------------
+            existing_user = User.objects(email=email).first()
+
+            if existing_user:
+                return Response(
+                    {"error": "A user with this email already exists"},
+                    status=400
+                )
+
+            # --------------------------------
+            # Hash password
+            # --------------------------------
+            hashed_password = bcrypt.hashpw(
+                password.encode("utf-8"),
+                bcrypt.gensalt()
+            ).decode("utf-8")
+
+            # --------------------------------
+            # Create User
+            # --------------------------------
+            user = User(
+                userid=str(uuid.uuid4()),
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                password=hashed_password,
+                created_at=datetime.utcnow(),
+                updated_at=datetime.utcnow()
+            )
+
+            user.save()
+
+            # --------------------------------
+            # Create Business
+            # --------------------------------
+            business = Business(
+                businessid=str(uuid.uuid4()),
+                name=business_name,
+                email=business_email,
+                phone=business_phone,
+                address=business_address,
+                created_by=user,
+                created_at=datetime.utcnow(),
+                updated_at=datetime.utcnow()
+            )
+
+            business.save()
+
+            # --------------------------------
+            # Create BusinessMember
+            # --------------------------------
+            member = BusinessMember(
+                businessid=business,
+                userid=user,
+                role="owner",
+                active=True,
+                created_at=datetime.utcnow(),
+                updated_at=datetime.utcnow()
+            )
+
+            member.save()
+
+            # --------------------------------
+            # Response
+            # --------------------------------
+            return Response(
+                {
+                    "message": "Business account created successfully",
+
+                    "user": {
+                        "userid": user.userid,
+                        "first_name": user.first_name,
+                        "last_name": user.last_name,
+                        "email": user.email,
+                        "role": member.role
+                    },
+
+                    "business": {
+                        "businessid": business.businessid,
+                        "name": business.name,
+                        "email": business.email,
+                        "phone": business.phone,
+                        "address": business.address
+                    }
+                },
+                status=201
+            )
+
+        except Exception as e:
+
+            return Response(
+                {
+                    "error": str(e)
+                },
+                status=400
+            )
 
 class register(APIView):
     permission_classes = [AllowAny]
