@@ -8,12 +8,18 @@ from .views import (name, register, login
       CreateCustomer, CreateExpense, ListAllExpenses, UpdateExpense, 
       SearchExpense, DeleteExpense, CreateVendor, ListAllVendors, UpdateVendor,
       DeleteVendor, SearchVendor, CreatePlan, UpdatePlan, DeletePlan, CreateSubscription, 
-      GetSubscription, UpdateSubscription)
+      GetSubscription, UpdateSubscription, RegisterBusiness)
 
 
 urlpatterns = [
       path('whatismyname', name, name="this api is used to find a customer") ,
-      path('api/auth/register', register.as_view(), name="this api is used to register a user") ,
+        # Business registration
+    path(
+        "api/register",
+        RegisterBusiness.as_view(),
+        name="register-business"
+    ),
+      path('api/user/register', register.as_view(), name="this api is used to register a user") ,
       path('api/auth/login', login.as_view(), name="this api is used to signin a user") ,
       path('api/auth/profile/<email>', profile.as_view(), name="this api is used to update a user") ,
       path('api/auth/profile', get_all_profile.as_view(), name="this api is used to find all users") ,

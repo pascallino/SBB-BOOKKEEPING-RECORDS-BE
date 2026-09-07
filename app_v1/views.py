@@ -3,7 +3,7 @@ from rest_framework.permissions import AllowAny
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import Business, User, Income, Invoice, Customer, Expense, Vendor, Plan, Subscription
+from .models import Business, User, Income, Invoice, Customer, Expense, Vendor, Plan, Subscription, Business, BusinessMember
 from uuid import uuid4
 from rest_framework import status
 from rest_framework_simplejwt.tokens import AccessToken
@@ -121,7 +121,7 @@ class RegisterBusiness(APIView):
                 created_at=datetime.utcnow(),
                 updated_at=datetime.utcnow()
             )
-
+            user.set_password(password)
             user.save()
 
             # --------------------------------
@@ -302,6 +302,15 @@ class CreateInvoice(APIView):
             serializer = CreateInvoiceSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             validated_data = serializer.validated_data
+            # --------------------------------
+            # Get the user's business
+            # --------------------------------
+            member = BusinessMember.objects.get(
+                userid=request.user,
+                active=True
+            )
+
+            business = member.businessid
             customer = None
             customerid = validated_data.get("customerid")
             if customerid:
@@ -309,6 +318,7 @@ class CreateInvoice(APIView):
             invoice = Invoice(
                 userid=request.user,
                 customer_id=customer,
+                businessid = business,
                 invoice_no=f"INV-{datetime.now().strftime('%Y%m%d')}-{uuid4().hex[:6].upper()}",
                 amount=validated_data["amount"],
                 due_date=validated_data.get("due_date"),
@@ -478,8 +488,18 @@ class CreateCustomer(APIView):
             data = CustomerSerializer(data=request.data)
             data.is_valid(raise_exception=True)
             validated_data = data.validated_data
+            # --------------------------------
+            # Get the user's business
+            # --------------------------------
+            member = BusinessMember.objects.get(
+                userid=request.user,
+                active=True
+            )
+
+            business = member.businessid
             customer = Customer(customerid=str(uuid4()),
             userid=request.user,
+            businessid=business,
             first_name=validated_data["first_name"],
             last_name=validated_data["last_name"],
             business_name=validated_data["business_name"],
