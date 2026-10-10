@@ -170,10 +170,10 @@ class RegisterBusiness(APIView):
 
                     "business": {
                         "businessid": business.businessid,
-                        "name": business.name,
-                        "email": business.email,
-                        "phone": business.phone,
-                        "address": business.address
+                        "name": business.business_name,
+                        "email": business.business_email,
+                        "phone": business.business_phone,
+                        "address": business.business_address
                     }
                 },
                 status=201
