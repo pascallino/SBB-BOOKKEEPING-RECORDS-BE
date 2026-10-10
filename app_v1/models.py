@@ -11,9 +11,9 @@ from uuid import uuid4
 class Business(Document):
     businessid = StringField(unique=True, required=True)
     business_name = StringField(required=True)
-    email = EmailField()
-    phone = StringField()
-    address = StringField()
+    business_email = EmailField()
+    business_phone = StringField()
+    business_address = StringField()
     created_by = ReferenceField("User", required=True)
     created_at = DateTimeField(default=datetime.utcnow)
     updated_at = DateTimeField(default=datetime.utcnow)
