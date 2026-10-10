@@ -52,10 +52,10 @@ class RegisterBusiness(APIView):
             # --------------------------------
             # Get business data
             # --------------------------------
-            business_name = request.data.get("business_name")
-            business_email = request.data.get("business_email")
-            business_phone = request.data.get("business_phone")
-            business_address = request.data.get("business_address")
+            b_name = request.data.get("business_name")
+            b_email = request.data.get("business_email")
+            b_phone = request.data.get("business_phone")
+            b_address = request.data.get("business_address")
 
             # --------------------------------
             # Validate required fields
@@ -84,7 +84,7 @@ class RegisterBusiness(APIView):
                     status=400
                 )
 
-            if not business_name:
+            if not b_name:
                 return Response(
                     {"error": "Business name is required"},
                     status=400
@@ -128,10 +128,10 @@ class RegisterBusiness(APIView):
             # --------------------------------
             business = Business(
                 businessid=str(uuid.uuid4()),
-                business_name=business_name,
-                business_email=business_email,
-                business_phone=business_phone,
-                business_address=business_address,
+                business_name=b_name,
+                business_email=b_email,
+                business_phone=b_phone,
+                business_address=b_address,
                 created_by=user,
                 created_at=datetime.utcnow(),
                 updated_at=datetime.utcnow()
