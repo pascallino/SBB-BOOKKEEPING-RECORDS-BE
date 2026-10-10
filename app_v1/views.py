@@ -31,7 +31,7 @@ GET    SBB/v1/api/auth/profile/
 PUT    SBB/v1/api/auth/profile/ """
 
 import uuid
-import bcrypt
+
 
 
 class RegisterBusiness(APIView):
@@ -104,10 +104,10 @@ class RegisterBusiness(APIView):
             # --------------------------------
             # Hash password
             # --------------------------------
-            hashed_password = bcrypt.hashpw(
-                password.encode("utf-8"),
-                bcrypt.gensalt()
-            ).decode("utf-8")
+            # hashed_password = bcrypt.hashpw(
+            #     password.encode("utf-8"),
+            #     bcrypt.gensalt()
+            # ).decode("utf-8")
 
             # --------------------------------
             # Create User
@@ -117,7 +117,6 @@ class RegisterBusiness(APIView):
                 first_name=first_name,
                 last_name=last_name,
                 email=email,
-                password=hashed_password,
                 created_at=datetime.utcnow(),
                 updated_at=datetime.utcnow()
             )
