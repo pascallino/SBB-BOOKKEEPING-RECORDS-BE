@@ -10,13 +10,11 @@ from uuid import uuid4
 
 class Business(Document):
     businessid = StringField(unique=True, required=True)
-    name = StringField(required=True)
+    business_name = StringField(required=True)
     email = EmailField()
     phone = StringField()
     address = StringField()
-
     created_by = ReferenceField("User", required=True)
-
     created_at = DateTimeField(default=datetime.utcnow)
     updated_at = DateTimeField(default=datetime.utcnow)
 
