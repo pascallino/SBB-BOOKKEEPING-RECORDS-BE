@@ -128,10 +128,10 @@ class RegisterBusiness(APIView):
             # --------------------------------
             business = Business(
                 businessid=str(uuid.uuid4()),
-                name=business_name,
-                email=business_email,
-                phone=business_phone,
-                address=business_address,
+                business_name=business_name,
+                business_email=business_email,
+                business_phone=business_phone,
+                business_address=business_address,
                 created_by=user,
                 created_at=datetime.utcnow(),
                 updated_at=datetime.utcnow()
