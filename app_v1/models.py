@@ -40,6 +40,7 @@ class User(Document):
     email = EmailField(unique=True)
     password = StringField()
     created_at = DateTimeField()
+    updated_at = DateTimeField()
     
     def set_password(self, password):
       self.password = make_password(password)
